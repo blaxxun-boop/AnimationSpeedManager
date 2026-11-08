@@ -38,22 +38,28 @@ public static class AnimationSpeedManager
 		handlers = handlersPriorities.OrderBy(kv => kv.Key).Select(kv => kv.Value.ToArray()).ToArray();
 	}
 
-	private static void wrapper(Character ___m_character, Animator ___m_animator)
-	{
-		double currentSpeedMarker = ___m_animator.speed * 1e7 % 100;
-		if (currentSpeedMarker is > 10 and < 30 || ___m_animator.speed <= 0.001f)
-		{
-			return;
-		}
+    private static void wrapper(Character ___m_character, Animator ___m_animator)
+    {
+        double currentSpeedMarker = ___m_animator.speed * 1e7 % 100;
+        if (currentSpeedMarker is > 10 and < 30 || ___m_animator.speed <= 0.001f)
+        {
+            return;
+        }
 
-		double speed = ___m_animator.speed;
-		double newSpeed = handlers[index++].Aggregate(speed, (current, handler) => handler(___m_character, current));
-		if (newSpeed != speed)
-		{
-			___m_animator.speed = (float)(newSpeed - newSpeed % 1e-5);
-			changed = true;
-		}
-	}
+        double speed = ___m_animator.speed;
+        Handler[] group = handlers[index++];
+        double newSpeed = speed;
+        for (int i = 0; i < group.Length; i++)
+        {
+            newSpeed = group[i](___m_character, newSpeed);
+        }
+
+        if (newSpeed != speed)
+        {
+            ___m_animator.speed = (float)(newSpeed - newSpeed % 1e-5);
+            changed = true;
+        }
+    }
 
 	private static void markerPatch(Animator ___m_animator)
 	{
